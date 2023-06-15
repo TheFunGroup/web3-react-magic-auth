@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react'
 
-import { hooks, MagicAuth } from '../../connectors/magicAuth'
+import {
+  discordConnector,
+  discordHooks,
+  googleConnector,
+  googleHooks,
+  twitterConnector,
+  twitterHooks,
+} from '../../connectors/magicAuth'
 import { Card } from '../Card'
 
-const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks
+interface MagicAuthCardInterface {
+  connector: any
+  hooks: any
+}
 
-export default function MagicAuthCard() {
+export default function MagicAuthCard(props: MagicAuthCardInterface) {
+  const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = props.hooks
   const chainId = useChainId()
   const accounts = useAccounts()
   const isActivating = useIsActivating()
@@ -19,14 +30,14 @@ export default function MagicAuthCard() {
 
   // attempt to connect eagerly on mount
   useEffect(() => {
-    void MagicAuth.connectEagerly().catch(() => {
+    void props.connector.connectEagerly().catch(() => {
       console.debug('Failed to connect eagerly to magic auth')
     })
   }, [])
 
   return (
     <Card
-      connector={MagicAuth}
+      connector={props.connector}
       activeChainId={chainId}
       isActivating={isActivating}
       isActive={isActive}
@@ -38,3 +49,9 @@ export default function MagicAuthCard() {
     />
   )
 }
+
+export const GoogleAuthCard = () => <MagicAuthCard connector={googleConnector} hooks={googleHooks} />
+
+export const TwitterAuthCard = () => <MagicAuthCard connector={twitterConnector} hooks={twitterHooks} />
+
+export const DiscordAuthCard = () => <MagicAuthCard connector={discordConnector} hooks={discordHooks} />

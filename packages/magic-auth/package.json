@@ -1,5 +1,5 @@
 {
-  "name": "@web3-react/magic-auth",
+  "name": "magic-auth",
   "keywords": [
     "web3-react",
     "magic-auth"
@@ -10,7 +10,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "8.2.0",
+  "version": "0.1.0",
   "files": [
     "dist/*"
   ],

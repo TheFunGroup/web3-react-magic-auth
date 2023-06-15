@@ -4,16 +4,16 @@ import { MagicConnect } from '@web3-react/magic-auth'
 import { MetaMask } from '@web3-react/metamask'
 import { Network } from '@web3-react/network'
 import type { Connector } from '@web3-react/types'
-import { WalletConnect as WalletConnect } from '@web3-react/walletconnect'
 import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
 
 export function getName(connector: Connector | MagicConnect) {
   if (connector instanceof MetaMask) return 'MetaMask'
-  if (connector instanceof WalletConnectV2) return 'WalletConnect V2'
-  if (connector instanceof WalletConnect) return 'WalletConnect'
+  if (connector instanceof WalletConnectV2) return 'WalletConnect'
   if (connector instanceof CoinbaseWallet) return 'Coinbase Wallet'
   if (connector instanceof Network) return 'Network'
   if (connector instanceof GnosisSafe) return 'Gnosis Safe'
-  if (connector instanceof MagicConnect) return connector.name
+  if (connector['name']) {
+    return connector['name'].charAt(0).toUpperCase() + connector['name'].slice(1)
+  }
   return 'Unknown'
 }
