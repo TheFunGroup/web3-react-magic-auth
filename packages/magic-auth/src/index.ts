@@ -35,7 +35,7 @@ export interface MagicAuthActivateFunction {
 export class MagicAuthConnector extends Connector {
   name: string
   authId?: string
-  provider: any
+  override provider: any
   magic: InstanceWithExtensions<SDKBase, OAuthExtension[]> | null
   chainId: number
   magicAuthApiKey: string
@@ -78,14 +78,14 @@ export class MagicAuthConnector extends Connector {
     })
   }
 
-  public getName(): string {
+  getName(): string {
     if (this.serverSide) return this.name
     const oauth = window.localStorage.getItem('oAuthProvider')
     if (oauth && oauth !== this.name) this.name = JSON.parse(oauth)
     return this.name
   }
 
-  public getSupportedAuthProviders(): OAuthProvider[] {
+  getSupportedAuthProviders(): OAuthProvider[] {
     return this.supportedAuthProviders
   }
 
@@ -171,8 +171,13 @@ export class MagicAuthConnector extends Connector {
 
   // "autoconnect"
   override async connectEagerly(): Promise<void> {
+    const cancelActivation = this.actions.startActivation()
     const isLoggedIn = await this.isAuthorized()
-    if (!isLoggedIn) return
+    if (!isLoggedIn) {
+      cancelActivation()
+      return
+    }
+    this.completeActivation()
   }
 
   // "connect"
@@ -212,6 +217,7 @@ export class MagicAuthConnector extends Connector {
   // "disconnect"
   override async deactivate(): Promise<void> {
     this.actions.resetState()
+    // await this.magic?.wallet.disconnect()
     await this.magic?.user.logout()
     this.removeEventListeners()
   }

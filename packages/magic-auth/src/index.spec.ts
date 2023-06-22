@@ -1,4 +1,4 @@
-import { MagicConnect, MagicAuthSDKOptions } from './index'
+import { MagicAuthConnector, MagicAuthSDKOptions } from './index'
 import { Actions } from '@web3-react/types'
 
 describe('MagicConnect', () => {
@@ -12,7 +12,7 @@ describe('MagicConnect', () => {
   const mockOptions: MagicAuthSDKOptions = {
     magicAuthApiKey: 'test-api-key',
     redirectURI: 'http://localhost/',
-    oAuthProvider: 'google',
+    supportedAuthProviders: ['google'],
     networkOptions: {
       rpcUrl: 'http://localhost:8545',
       chainId: 1337,
@@ -25,13 +25,13 @@ describe('MagicConnect', () => {
 
   describe('constructor', () => {
     it('should initialize Magic instance and set properties', () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
 
       expect(magicConnect.magic).toBeDefined()
       expect(magicConnect.chainId).toBe(mockOptions.networkOptions.chainId)
       expect(magicConnect.provider).toBeDefined()
       expect(magicConnect.magicAuthApiKey).toBe(mockOptions.magicAuthApiKey)
-      expect(magicConnect.oAuthProvider).toBe(mockOptions.oAuthProvider)
+      expect(magicConnect.supportedAuthProviders).toBe(mockOptions.supportedAuthProviders)
       expect(magicConnect.redirectURI).toBe(mockOptions.redirectURI)
       expect(magicConnect.oAuthResult).toBeNull()
     })
@@ -39,7 +39,7 @@ describe('MagicConnect', () => {
 
   describe('connectEagerly', () => {
     it('should activate if user is logged in', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockIsLoggedIn = jest.fn().mockResolvedValue(true)
       magicConnect.magic = { user: { isLoggedIn: mockIsLoggedIn } } as any
       magicConnect.completeActivation = jest.fn()
@@ -54,22 +54,22 @@ describe('MagicConnect', () => {
 
   describe('activate', () => {
     it('should activate Magic instance and set event listeners', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockLoginWithRedirect = jest.fn().mockResolvedValue(undefined)
       magicConnect.magic = { oauth: { loginWithRedirect: mockLoginWithRedirect }, user: { isLoggedIn: jest.fn().mockResolvedValue(false) } } as any
 
       mockActions.startActivation = jest.fn()
       magicConnect.setEventListeners = jest.fn()
 
-      await magicConnect.activate()
+      await magicConnect.activate({oAuthProvider: mockOptions.supportedAuthProviders[0]})
 
       expect(mockActions.startActivation).toHaveBeenCalled()
-      expect(mockLoginWithRedirect).toHaveBeenCalledWith({ provider: mockOptions.oAuthProvider, redirectURI: mockOptions.redirectURI })
+      expect(mockLoginWithRedirect).toHaveBeenCalledWith({ provider: mockOptions.supportedAuthProviders[0], redirectURI: mockOptions.redirectURI })
       expect(magicConnect.setEventListeners).toHaveBeenCalled()
     })
 
     it('should complete activation if user is already logged in', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockIsLoggedIn = jest.fn().mockResolvedValue(true)
       magicConnect.magic = { user: { isLoggedIn: mockIsLoggedIn } } as any
 
@@ -77,7 +77,7 @@ describe('MagicConnect', () => {
       mockActions.resetState = jest.fn();
       magicConnect.completeActivation = jest.fn();
       
-      await magicConnect.activate()
+      await magicConnect.activate({oAuthProvider: mockOptions.supportedAuthProviders[0]})
 
       expect(mockActions.startActivation).toHaveBeenCalled()
       expect(mockActions.resetState).not.toHaveBeenCalled()
@@ -88,9 +88,9 @@ describe('MagicConnect', () => {
 
   describe('deactivate', () => {
     it('should reset state and disconnect wallet', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockDisconnect = jest.fn().mockResolvedValue(undefined)
-      magicConnect.magic = { wallet: { disconnect: mockDisconnect } } as any
+      magicConnect.magic = { user: { logout: mockDisconnect } } as any
       magicConnect.removeEventListeners = jest.fn();
       mockActions.resetState = jest.fn();
       await magicConnect.deactivate()
@@ -103,7 +103,7 @@ describe('MagicConnect', () => {
 
   describe('completeActivation', () => {
     it('should update connector state with chainId and accounts', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockChainId = '0x1'
       const mockAccounts = ['0x123', '0x456']
       const mockRequest = jest.fn().mockResolvedValueOnce(mockChainId).mockResolvedValueOnce(mockAccounts)
@@ -117,7 +117,7 @@ describe('MagicConnect', () => {
 
   describe('isAuthorized', () => {
     it('should return true if user is logged in', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockIsLoggedIn = jest.fn().mockResolvedValue(true)
       magicConnect.magic = { user: { isLoggedIn: mockIsLoggedIn } } as any
 
@@ -128,7 +128,7 @@ describe('MagicConnect', () => {
 
 
     it('should return false if user is not logged in and OAuth redirect result is not present', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockIsLoggedIn = jest.fn().mockResolvedValue(false)
       magicConnect.magic = { user: { isLoggedIn: mockIsLoggedIn }, oauth: { getRedirectResult: jest.fn().mockResolvedValue(null) } } as any
 
@@ -138,7 +138,7 @@ describe('MagicConnect', () => {
     })
 
     it('should return false if an error occurs', async () => {
-      const magicConnect = new MagicConnect({ actions: mockActions, options: mockOptions })
+      const magicConnect = new MagicAuthConnector({ actions: mockActions, options: mockOptions })
       const mockIsLoggedIn = jest.fn().mockRejectedValue(new Error('Test error'))
       magicConnect.magic = { user: { isLoggedIn: mockIsLoggedIn } } as any
 

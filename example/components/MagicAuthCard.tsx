@@ -49,7 +49,7 @@ export function MagicAuthCard({
         borderRadius: '1rem',
       }}
     >
-      <b>{isActive ? Magicname : 'Magic Auth'}</b>
+      <b>{isActive ? Magicname : 'MagicAuth'}</b>
       <div style={{ marginBottom: '1rem' }}>
         <Status isActivating={isActivating} isActive={isActive} error={error} />
       </div>

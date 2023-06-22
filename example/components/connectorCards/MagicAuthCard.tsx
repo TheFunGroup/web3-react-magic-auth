@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 import { MagicConnector, MagicHooks } from '../../connectors/magicAuth'
 import { MagicAuthCard } from '../MagicAuthCard'
 
-
-
 export default function MagicOAuthComponent() {
   const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = MagicHooks
   const chainId = useChainId()
@@ -39,4 +37,3 @@ export default function MagicOAuthComponent() {
     />
   )
 }
-
