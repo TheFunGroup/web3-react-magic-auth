@@ -1,7 +1,7 @@
 import type { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import type { Web3ReactHooks } from '@web3-react/core'
 import { GnosisSafe } from '@web3-react/gnosis-safe'
-import { MagicConnect } from '@web3-react/magic-auth'
+import { MagicAuthConnector } from '@web3-react/magic-auth'
 import type { MetaMask } from '@web3-react/metamask'
 import { Network } from '@web3-react/network'
 import { WalletConnect } from '@web3-react/walletconnect'
@@ -52,7 +52,7 @@ export function ConnectWithSelect({
   setError,
   activate,
 }: {
-  connector: MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network | GnosisSafe | MagicConnect
+  connector: MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network | GnosisSafe | MagicAuthConnector
   activeChainId: ReturnType<Web3ReactHooks['useChainId']>
   chainIds?: ReturnType<Web3ReactHooks['useChainId']>[]
   isActivating: ReturnType<Web3ReactHooks['useIsActivating']>
@@ -107,6 +107,45 @@ export function ConnectWithSelect({
     },
     [connector, activeChainId, setError]
   )
+
+  if (connector instanceof MagicAuthConnector)
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <ChainSelect activeChainId={desiredChainId} switchChain={switchChain} chainIds={chainIds} />
+        <div style={{ marginBottom: '1rem' }} />
+        {isActive ? (
+          error ? (
+            <button onClick={() => switchChain(desiredChainId)}>Try again?</button>
+          ) : (
+            <button
+              onClick={() => {
+                if (connector?.deactivate) {
+                  void connector.deactivate()
+                } else {
+                  void connector.resetState()
+                }
+                setDesiredChainId(undefined)
+              }}
+            >
+              Disconnect
+            </button>
+          )
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {connector.getSupportedAuthProviders().map((oAuthProvider, index) => (
+              <button
+                style={{ margin: '4px 0' }}
+                key={index}
+                onClick={() => connector.activate({ oAuthProvider })}
+                disabled={isActivating}
+              >
+                {error ? `Try ${oAuthProvider} again` : `Connect with ${oAuthProvider}`}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

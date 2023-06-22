@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
 
 import { MagicConnector, MagicHooks } from '../../connectors/magicAuth'
-import { Card } from '../Card'
+import { MagicAuthCard } from '../MagicAuthCard'
 
-interface MagicAuthCardInterface {
-  connector: any
-  hooks: any
-  activate: () => void
-}
 
-export default function MagicAuthCard(props: MagicAuthCardInterface) {
-  const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = props.hooks
+
+export default function MagicOAuthComponent() {
+  const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = MagicHooks
   const chainId = useChainId()
   const accounts = useAccounts()
   const isActivating = useIsActivating()
@@ -24,15 +20,14 @@ export default function MagicAuthCard(props: MagicAuthCardInterface) {
 
   // attempt to connect eagerly on mount
   useEffect(() => {
-    void props.connector.connectEagerly().catch(() => {
+    void MagicConnector.connectEagerly().catch(() => {
       console.debug('Failed to connect eagerly to magic auth')
     })
   }, [])
 
   return (
-    <Card
-      connector={props.connector}
-      activate={props.activate}
+    <MagicAuthCard
+      connector={MagicConnector}
       activeChainId={chainId}
       isActivating={isActivating}
       isActive={isActive}
@@ -45,32 +40,3 @@ export default function MagicAuthCard(props: MagicAuthCardInterface) {
   )
 }
 
-export const GoogleAuthCard = () => (
-  <MagicAuthCard
-    connector={MagicConnector}
-    hooks={MagicHooks}
-    activate={() => {
-      MagicConnector.activate({ oAuthProvider: 'google' })
-    }}
-  />
-)
-
-export const TwitterAuthCard = () => (
-  <MagicAuthCard
-    connector={MagicConnector}
-    hooks={MagicHooks}
-    activate={() => {
-      MagicConnector.activate({ oAuthProvider: 'twitter' })
-    }}
-  />
-)
-
-export const DiscordAuthCard = () => (
-  <MagicAuthCard
-    connector={MagicConnector}
-    hooks={MagicHooks}
-    activate={() => {
-      MagicConnector.activate({ oAuthProvider: 'discord' })
-    }}
-  />
-)

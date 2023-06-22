@@ -7,12 +7,10 @@ function parseChainId(chainId: string | number) {
   return typeof chainId === 'number' ? chainId : Number.parseInt(chainId, chainId.startsWith('0x') ? 16 : 10)
 }
 
-export declare type OAuthProviderExt = OAuthProvider | 'MagicAuth'
-
 export interface MagicAuthSDKOptions extends MagicSDKAdditionalConfiguration {
   magicAuthApiKey: string
   redirectURI: string
-  oAuthProvider: OAuthProviderExt
+  supportedAuthProviders: OAuthProvider[]
   networkOptions: {
     rpcUrl: string
     chainId: number
@@ -34,7 +32,7 @@ export interface MagicAuthActivateFunction {
   (args: MagicAuthActivateArgs): Promise<void>
 }
 
-export class MagicConnect extends Connector {
+export class MagicAuthConnector extends Connector {
   name: string
   authId?: string
   provider: any
@@ -42,18 +40,22 @@ export class MagicConnect extends Connector {
   chainId: number
   magicAuthApiKey: string
   redirectURI: string
-  oAuthProvider: OAuthProviderExt
+  oAuthProvider: OAuthProvider
+  supportedAuthProviders: OAuthProvider[]
   oAuthResult: OAuthRedirectResult | null
   private readonly options: MagicAuthSDKOptions
 
   constructor({ actions, options, onError }: MagicAuthConstructorArgs) {
     super(actions, onError)
     this.options = options
-    this.name = `${options.oAuthProvider as string}`
-    this.magicAuthApiKey = options.magicAuthApiKey || 'pk_live_8DB9921E98B1C9E5'
-    this.oAuthProvider = 'google'
+    this.name = `Not Connected`
+    this.magicAuthApiKey = options.magicAuthApiKey
+    this.supportedAuthProviders = options.supportedAuthProviders
+    if (options.supportedAuthProviders.length === 0)
+      throw new Error('No supported OAuth providers were passed to the connector')
+    this.oAuthProvider = options.supportedAuthProviders[0]
     this.redirectURI = options.redirectURI
-    if (!this.serverSide && window.location.href) this.redirectURI = window.location.href
+    if (!this.serverSide && window.location.href) this.redirectURI = window.location.href // TODO is this actually a good idea seems like it will totally invalidate the redirectURI option
     this.oAuthResult = null
     const { magic, chainId, provider } = this.initializeMagicInstance()
     this.magic = magic
@@ -77,9 +79,14 @@ export class MagicConnect extends Connector {
   }
 
   public getName(): string {
+    if (this.serverSide) return this.name
     const oauth = window.localStorage.getItem('oAuthProvider')
-    if (oauth && oauth !== this.name) this.name = oauth
+    if (oauth && oauth !== this.name) this.name = JSON.parse(oauth)
     return this.name
+  }
+
+  public getSupportedAuthProviders(): OAuthProvider[] {
+    return this.supportedAuthProviders
   }
 
   private connectListener = ({ chainId }: ProviderConnectInfo): void => {
@@ -173,7 +180,7 @@ export class MagicConnect extends Connector {
     const cancelActivation = this.actions.startActivation()
     try {
       // Initialize the magic instance
-      if (await this.isAuthorized()) {
+      if (activateArgs.oAuthProvider == this.oAuthProvider && (await this.isAuthorized())) {
         this.completeActivation()
         return
       }
@@ -229,29 +236,22 @@ export class MagicConnect extends Connector {
       const isLoggedIn = await magic.user.isLoggedIn()
       const oauth = window.localStorage.getItem('oAuthProvider')
       this.oAuthProvider = oauth ? JSON.parse(oauth) : this.oAuthProvider
-      console.log('CHECK Logged in status: ', magic, isLoggedIn, this.oAuthProvider, oauth)
+
       if (isLoggedIn) {
         return true
       }
-      console.log('CHECK OAUTH RESULT: ', this.oAuthResult)
 
       if (this.oAuthResult) {
         return true
       }
       this.oAuthResult = await magic.oauth.getRedirectResult()
-      console.log(
-        'CHECK AUTHORIZATION: ',
-        this.oAuthResult,
-        this.oAuthProvider,
-        this.oAuthResult != null && this.oAuthResult.oauth.provider == this.oAuthProvider
-      )
+
       if (this.oAuthResult != null) {
         window.localStorage.setItem('oAuthProvider', JSON.stringify(this.oAuthResult.oauth.provider))
         return true
       } else {
         return false
       }
-      // return this.oAuthResult != null // && this.oAuthResult.oauth.provider === this.oAuthProvider
     } catch (err) {
       console.log('Catching auth error', err)
       return false

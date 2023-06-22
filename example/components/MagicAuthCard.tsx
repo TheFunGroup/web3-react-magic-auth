@@ -1,11 +1,5 @@
-import type { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import type { Web3ReactHooks } from '@web3-react/core'
-import type { GnosisSafe } from '@web3-react/gnosis-safe'
 import { MagicAuthConnector } from '@web3-react/magic-auth'
-import type { MetaMask } from '@web3-react/metamask'
-import type { Network } from '@web3-react/network'
-import type { WalletConnect } from '@web3-react/walletconnect'
-import type { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
 
 import { useGetName } from '../utils'
 import { Accounts } from './Accounts'
@@ -14,7 +8,7 @@ import { ConnectWithSelect } from './ConnectWithSelect'
 import { Status } from './Status'
 
 interface Props {
-  connector: MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network | GnosisSafe | MagicAuthConnector
+  connector: MagicAuthConnector
   activeChainId: ReturnType<Web3ReactHooks['useChainId']>
   chainIds?: ReturnType<Web3ReactHooks['useChainId']>[]
   isActivating: ReturnType<Web3ReactHooks['useIsActivating']>
@@ -27,7 +21,7 @@ interface Props {
   activate?: () => void
 }
 
-export function Card({
+export function MagicAuthCard({
   connector,
   activeChainId,
   chainIds,
@@ -40,6 +34,7 @@ export function Card({
   provider,
   activate,
 }: Props) {
+  const Magicname = useGetName(connector)
   return (
     <div
       style={{
@@ -54,7 +49,7 @@ export function Card({
         borderRadius: '1rem',
       }}
     >
-      <b>{useGetName(connector)}</b>
+      <b>{isActive ? Magicname : 'Magic Auth'}</b>
       <div style={{ marginBottom: '1rem' }}>
         <Status isActivating={isActivating} isActive={isActive} error={error} />
       </div>

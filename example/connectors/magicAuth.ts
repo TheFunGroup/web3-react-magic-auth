@@ -1,13 +1,13 @@
 import { initializeConnector } from '@web3-react/core'
-import { MagicConnect } from '@web3-react/magic-auth'
+import { MagicAuthConnector } from '@web3-react/magic-auth'
 
-export const [MagicConnector, MagicHooks] = initializeConnector<MagicConnect>(
+export const [MagicConnector, MagicHooks] = initializeConnector<MagicAuthConnector>(
   (actions) =>
-    new MagicConnect({
+    new MagicAuthConnector({
       actions,
       options: {
         magicAuthApiKey: 'pk_live_846F1095F0E1303C',
-        oAuthProvider: 'google',
+        supportedAuthProviders: ['google', 'twitter', 'apple', 'discord'],
         redirectURI: 'http://localhost:3000/',
         networkOptions: {
           rpcUrl: 'https://rpc-mainnet.maticvigil.com',

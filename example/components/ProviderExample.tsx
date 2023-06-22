@@ -10,7 +10,7 @@ import { hooks as metaMaskHooks, metaMask } from '../connectors/metaMask'
 import { hooks as networkHooks, network } from '../connectors/network'
 import { hooks as walletConnectHooks, walletConnect } from '../connectors/walletConnect'
 import { hooks as walletConnectV2Hooks, walletConnectV2 } from '../connectors/walletConnectV2'
-import { getName } from '../utils'
+import { useGetName } from '../utils'
 
 const connectors: [MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network, Web3ReactHooks][] = [
   [metaMask, metaMaskHooks],
@@ -22,7 +22,7 @@ const connectors: [MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet |
 
 function Child() {
   const { connector } = useWeb3React()
-  console.log(`Priority Connector is: ${getName(connector)}`)
+  console.log(`Priority Connector is: ${useGetName(connector)}`)
   return null
 }
 
