@@ -12,8 +12,9 @@ export function getName(connector: Connector | MagicConnect) {
   if (connector instanceof CoinbaseWallet) return 'Coinbase Wallet'
   if (connector instanceof Network) return 'Network'
   if (connector instanceof GnosisSafe) return 'Gnosis Safe'
-  if (connector['name']) {
-    return connector['name'].charAt(0).toUpperCase() + connector['name'].slice(1)
+  if (connector instanceof MagicConnect) {
+    const name = connector.getName()
+    return name.charAt(0).toUpperCase() + name.slice(1)
   }
   return 'Unknown'
 }

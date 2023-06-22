@@ -1,13 +1,14 @@
 import type { CoinbaseWallet } from '@web3-react/coinbase-wallet'
 import type { Web3ReactHooks } from '@web3-react/core'
 import { GnosisSafe } from '@web3-react/gnosis-safe'
+import { MagicConnect } from '@web3-react/magic-auth'
 import type { MetaMask } from '@web3-react/metamask'
 import { Network } from '@web3-react/network'
 import { WalletConnect } from '@web3-react/walletconnect'
 import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
 import { useCallback, useEffect, useState } from 'react'
 
-import { CHAINS, getAddChainParameters } from '../chains'
+import { CHAINS } from '../chains'
 
 function ChainSelect({
   activeChainId,
@@ -49,14 +50,16 @@ export function ConnectWithSelect({
   isActive,
   error,
   setError,
+  activate,
 }: {
-  connector: MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network | GnosisSafe
+  connector: MetaMask | WalletConnect | WalletConnectV2 | CoinbaseWallet | Network | GnosisSafe | MagicConnect
   activeChainId: ReturnType<Web3ReactHooks['useChainId']>
   chainIds?: ReturnType<Web3ReactHooks['useChainId']>[]
   isActivating: ReturnType<Web3ReactHooks['useIsActivating']>
   isActive: ReturnType<Web3ReactHooks['useIsActive']>
   error: Error | undefined
   setError: (error: Error | undefined) => void
+  activate: () => void
 }) {
   const [desiredChainId, setDesiredChainId] = useState<number>(undefined)
 
@@ -86,15 +89,15 @@ export function ConnectWithSelect({
         }
 
         if (desiredChainId === -1 || connector instanceof GnosisSafe) {
-          await connector.activate()
+          await activate()
         } else if (
           connector instanceof WalletConnectV2 ||
           connector instanceof WalletConnect ||
           connector instanceof Network
         ) {
-          await connector.activate(desiredChainId)
+          await activate()
         } else {
-          await connector.activate(getAddChainParameters(desiredChainId))
+          await activate()
         }
 
         setError(undefined)

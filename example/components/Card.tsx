@@ -24,6 +24,7 @@ interface Props {
   ENSNames: ReturnType<Web3ReactHooks['useENSNames']>
   provider?: ReturnType<Web3ReactHooks['useProvider']>
   accounts?: string[]
+  activate?: () => void
 }
 
 export function Card({
@@ -37,6 +38,7 @@ export function Card({
   ENSNames,
   accounts,
   provider,
+  activate,
 }: Props) {
   return (
     <div
@@ -62,6 +64,7 @@ export function Card({
       </div>
       <ConnectWithSelect
         connector={connector}
+        activate={activate}
         activeChainId={activeChainId}
         chainIds={chainIds}
         isActivating={isActivating}

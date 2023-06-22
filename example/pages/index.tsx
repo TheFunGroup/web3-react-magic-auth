@@ -18,9 +18,9 @@ export default function Home() {
         <CoinbaseWalletCard />
         <NetworkCard />
         <GnosisSafeCard />
-        <GoogleAuthCard />
         <TwitterAuthCard />
         <DiscordAuthCard />
+        <GoogleAuthCard />
       </div>
     </>
   )

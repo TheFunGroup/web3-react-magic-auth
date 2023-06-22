@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react'
 
-import {
-  discordConnector,
-  discordHooks,
-  googleConnector,
-  googleHooks,
-  twitterConnector,
-  twitterHooks,
-} from '../../connectors/magicAuth'
+import { MagicConnector, MagicHooks } from '../../connectors/magicAuth'
 import { Card } from '../Card'
 
 interface MagicAuthCardInterface {
   connector: any
   hooks: any
+  activate: () => void
 }
 
 export default function MagicAuthCard(props: MagicAuthCardInterface) {
@@ -38,6 +32,7 @@ export default function MagicAuthCard(props: MagicAuthCardInterface) {
   return (
     <Card
       connector={props.connector}
+      activate={props.activate}
       activeChainId={chainId}
       isActivating={isActivating}
       isActive={isActive}
@@ -50,8 +45,32 @@ export default function MagicAuthCard(props: MagicAuthCardInterface) {
   )
 }
 
-export const GoogleAuthCard = () => <MagicAuthCard connector={googleConnector} hooks={googleHooks} />
+export const GoogleAuthCard = () => (
+  <MagicAuthCard
+    connector={MagicConnector}
+    hooks={MagicHooks}
+    activate={() => {
+      MagicConnector.activate({ oAuthProvider: 'google' })
+    }}
+  />
+)
 
-export const TwitterAuthCard = () => <MagicAuthCard connector={twitterConnector} hooks={twitterHooks} />
+export const TwitterAuthCard = () => (
+  <MagicAuthCard
+    connector={MagicConnector}
+    hooks={MagicHooks}
+    activate={() => {
+      MagicConnector.activate({ oAuthProvider: 'twitter' })
+    }}
+  />
+)
 
-export const DiscordAuthCard = () => <MagicAuthCard connector={discordConnector} hooks={discordHooks} />
+export const DiscordAuthCard = () => (
+  <MagicAuthCard
+    connector={MagicConnector}
+    hooks={MagicHooks}
+    activate={() => {
+      MagicConnector.activate({ oAuthProvider: 'discord' })
+    }}
+  />
+)
